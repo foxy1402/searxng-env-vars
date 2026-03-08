@@ -31,11 +31,24 @@ SEARXNG_METHOD=GET
 SEARXNG_DEBUG=false
 ```
 
+Recommended config for your use case (Telegram bot + Perplexity clone, high query rate):
+
+```env
+SEARXNG_BASE_URL=http://tcp.ap-southeast-1.clawcloudrun.com:33225/
+SEARXNG_SECRET=replace-with-64-hex
+SEARXNG_PUBLIC_INSTANCE=true
+SEARXNG_LIMITER=false
+SEARXNG_IMAGE_PROXY=true
+SEARXNG_METHOD=GET
+SEARXNG_DEBUG=false
+```
+
 Notes:
 - `SEARXNG_BASE_URL` must end with `/`
 - `SEARXNG_BASE_URL` must match your real public URL exactly (host + port + protocol)
 - `SEARXNG_SECRET` should be random and long
 - `SEARXNG_LIMITER=false` means no built-in rate limit for public users
+- With `SEARXNG_LIMITER=false`, protect your endpoint at app level (API key, allowlist, or gateway rules) if abuse appears
 
 Generate `SEARXNG_SECRET` online (no local tool needed):
 
