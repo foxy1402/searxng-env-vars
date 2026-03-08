@@ -9,16 +9,20 @@ This guide is for your exact setup:
 ## 1) Pod/App settings in Claw Cloud
 
 - Image: `ghcr.io/searxng/searxng:latest`
-- Container port: `8080`
-- Public port/ingress: map to container `8080`
+- Container port: `8080/TCP`
+- Public port/ingress: map to container `8080/TCP` (not UDP)
 - Persistent storage: mount to `/var/cache/searxng` (recommended)
+
+Protocol note:
+- SearXNG serves HTTP, so use TCP only.
+- Do not open UDP for this app.
 
 ## 2) Required env vars
 
 Use these env vars in your Claw Cloud app config:
 
 ```env
-SEARXNG_BASE_URL=https://your-domain.example/
+SEARXNG_BASE_URL=http://tcp.ap-southeast-1.clawcloudrun.com:33225/
 SEARXNG_SECRET=replace-with-64-hex
 SEARXNG_PUBLIC_INSTANCE=true
 SEARXNG_LIMITER=false
@@ -29,16 +33,30 @@ SEARXNG_DEBUG=false
 
 Notes:
 - `SEARXNG_BASE_URL` must end with `/`
+- `SEARXNG_BASE_URL` must match your real public URL exactly (host + port + protocol)
 - `SEARXNG_SECRET` should be random and long
 - `SEARXNG_LIMITER=false` means no built-in rate limit for public users
 
-Generate a secret example:
+Generate `SEARXNG_SECRET` online (no local tool needed):
 
-```bash
-openssl rand -hex 32
-```
+- [Browserling Random Hex](https://www.browserling.com/tools/random-hex)
+  - Set `How many digits?` = `64`
+  - Copy generated value into `SEARXNG_SECRET`
+- [CalcBE Token Generator](https://calcbe.com/en/tools/token-generator/)
+  - Format: `hex`
+  - Bytes: `32` (this gives 64 hex characters)
+  - Copy generated value into `SEARXNG_SECRET`
 
-## 3) About "only I can change settings"
+## 3) Two-step deploy on Claw Cloud (because port is random)
+
+1. First deploy with a temporary base URL, for example:
+   - `SEARXNG_BASE_URL=http://localhost:8080/`
+2. After Claw Cloud gives your public endpoint (example: `http://tcp.ap-southeast-1.clawcloudrun.com:33225/`), update `SEARXNG_BASE_URL` to that exact value.
+3. Redeploy/restart the pod.
+
+If Claw Cloud gives you HTTPS instead of HTTP, use `https://...` in `SEARXNG_BASE_URL`.
+
+## 4) About "only I can change settings"
 
 SearXNG does not provide a global admin settings page for server config.
 Server settings are changed via environment/config + restart only.
@@ -46,7 +64,7 @@ That means only the person with access to your Claw Cloud project can change set
 
 Public users can still use the search page normally.
 
-## 4) What users can do on the website
+## 5) What users can do on the website
 
 - Use your URL as a public meta-search engine
 - Search results are fetched from upstream engines (DuckDuckGo/Brave/etc depending on SearXNG defaults and engine availability)
