@@ -13,29 +13,9 @@ services:
     volumes:
       - searxng-config:/etc/searxng
       - searxng-data:/var/cache/searxng
-    expose:
-      - "8080"
-
-  caddy:
-    image: caddy:2-alpine
-    restart: unless-stopped
-    depends_on:
-      - searxng
-    environment:
-      DOMAIN: ${DOMAIN}
-      ACME_EMAIL: ${ACME_EMAIL}
-      ADMIN_USER: ${ADMIN_USER}
-      ADMIN_PASSWORD_HASH: ${ADMIN_PASSWORD_HASH}
     ports:
-      - "80:80"
-      - "443:443"
-    volumes:
-      - ./Caddyfile:/etc/caddy/Caddyfile:ro
-      - caddy-data:/data
-      - caddy-config:/config
+      - "8080:8080"
 
 volumes:
   searxng-config:
   searxng-data:
-  caddy-data:
-  caddy-config:
