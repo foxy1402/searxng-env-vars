@@ -24,7 +24,7 @@ Use these env vars in your Claw Cloud app config:
 ```env
 SEARXNG_BASE_URL=http://tcp.ap-southeast-1.clawcloudrun.com:33225/
 SEARXNG_SECRET=replace-with-64-hex
-SEARXNG_PUBLIC_INSTANCE=true
+SEARXNG_PUBLIC_INSTANCE=false
 SEARXNG_LIMITER=false
 SEARXNG_IMAGE_PROXY=true
 SEARXNG_METHOD=GET
@@ -36,7 +36,7 @@ Recommended config for your use case (Telegram bot + Perplexity clone, high quer
 ```env
 SEARXNG_BASE_URL=http://tcp.ap-southeast-1.clawcloudrun.com:33225/
 SEARXNG_SECRET=replace-with-64-hex
-SEARXNG_PUBLIC_INSTANCE=true
+SEARXNG_PUBLIC_INSTANCE=false
 SEARXNG_LIMITER=false
 SEARXNG_IMAGE_PROXY=true
 SEARXNG_METHOD=GET
@@ -47,7 +47,7 @@ Notes:
 - `SEARXNG_BASE_URL` must end with `/`
 - `SEARXNG_BASE_URL` must match your real public URL exactly (host + port + protocol)
 - `SEARXNG_SECRET` should be random and long
-- `SEARXNG_LIMITER=false` means no built-in rate limit for public users
+- Keep `SEARXNG_PUBLIC_INSTANCE=false` when `SEARXNG_LIMITER=false` and no Valkey is configured
 - With `SEARXNG_LIMITER=false`, protect your endpoint at app level (API key, allowlist, or gateway rules) if abuse appears
 
 Generate `SEARXNG_SECRET` online (no local tool needed):
@@ -69,7 +69,18 @@ Generate `SEARXNG_SECRET` online (no local tool needed):
 
 If Claw Cloud gives you HTTPS instead of HTTP, use `https://...` in `SEARXNG_BASE_URL`.
 
-## 4) About "only I can change settings"
+## 4) If you want true public-instance mode later
+
+If you set `SEARXNG_PUBLIC_INSTANCE=true`, SearXNG enables bot protections that require Valkey and limiter config.
+Without Valkey, startup can fail with:
+- `missing config file: /etc/searxng/limiter.toml`
+- `The limiter requires Valkey`
+
+For your current "no limit, high query rate" scope, keep:
+- `SEARXNG_PUBLIC_INSTANCE=false`
+- `SEARXNG_LIMITER=false`
+
+## 5) About "only I can change settings"
 
 SearXNG does not provide a global admin settings page for server config.
 Server settings are changed via environment/config + restart only.
@@ -77,7 +88,7 @@ That means only the person with access to your Claw Cloud project can change set
 
 Public users can still use the search page normally.
 
-## 5) What users can do on the website
+## 6) What users can do on the website
 
 - Use your URL as a public meta-search engine
 - Search results are fetched from upstream engines (DuckDuckGo/Brave/etc depending on SearXNG defaults and engine availability)
