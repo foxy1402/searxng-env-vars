@@ -1,0 +1,41 @@
+services:
+  searxng:
+    image: ghcr.io/searxng/searxng:latest
+    restart: unless-stopped
+    environment:
+      SEARXNG_BASE_URL: ${SEARXNG_BASE_URL}
+      SEARXNG_SECRET: ${SEARXNG_SECRET}
+      SEARXNG_PUBLIC_INSTANCE: ${SEARXNG_PUBLIC_INSTANCE}
+      SEARXNG_LIMITER: ${SEARXNG_LIMITER}
+      SEARXNG_IMAGE_PROXY: ${SEARXNG_IMAGE_PROXY}
+      SEARXNG_METHOD: ${SEARXNG_METHOD}
+      SEARXNG_DEBUG: ${SEARXNG_DEBUG}
+    volumes:
+      - searxng-config:/etc/searxng
+      - searxng-data:/var/cache/searxng
+    expose:
+      - "8080"
+
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    depends_on:
+      - searxng
+    environment:
+      DOMAIN: ${DOMAIN}
+      ACME_EMAIL: ${ACME_EMAIL}
+      ADMIN_USER: ${ADMIN_USER}
+      ADMIN_PASSWORD_HASH: ${ADMIN_PASSWORD_HASH}
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+
+volumes:
+  searxng-config:
+  searxng-data:
+  caddy-data:
+  caddy-config:
