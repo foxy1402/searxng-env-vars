@@ -85,7 +85,7 @@ Command:
 Arguments:
 
 ```text
-printf '%s\n' 'use_default_settings: true' 'server:' '  public_instance: false' '  limiter: false' 'search:' '  formats:' '    - json' 'engines:' '  - name: ahmia' '    disabled: true' '  - name: torch' '    disabled: true' '  - name: startpage' '    disabled: true' >/etc/searxng/settings.yml; exec /usr/local/searxng/.venv/bin/granian --interface wsgi --host 0.0.0.0 --port 8080 --workers 1 searx.webapp:app
+printf '%s\n' 'use_default_settings: true' 'server:' '  public_instance: false' '  limiter: false' 'search:' '  formats:' '    - html' '    - json' 'engines:' '  - name: ahmia' '    disabled: true' '  - name: torch' '    disabled: true' '  - name: startpage' '    disabled: true' >/etc/searxng/settings.yml; exec /usr/local/searxng/.venv/bin/granian --interface wsgi --host 0.0.0.0 --port 8080 --workers 1 searx.webapp:app
 ```
 
 Then restart and test:
