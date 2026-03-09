@@ -73,24 +73,18 @@ If Claw Cloud gives you HTTPS instead of HTTP, use `https://...` in `SEARXNG_BAS
 
 If your platform only exposes env vars plus startup `Command`/`Arguments`, use this startup command to create `settings.yml` at boot.
 
+Set startup as (for platforms with 1 Command field + 1 Arguments field):
+
 Command:
 
 ```text
-/bin/sh
+/bin/sh -c
 ```
 
 Arguments:
 
 ```text
--c
-cat >/etc/searxng/settings.yml <<'EOF'
-use_default_settings: true
-search:
-  formats:
-    - html
-    - json
-EOF
-exec /usr/local/searxng/dockerfiles/docker-entrypoint.sh
+printf '%s\n' 'use_default_settings: true' 'search:' '  formats:' '    - html' '    - json' >/etc/searxng/settings.yml; exec /usr/local/searxng/dockerfiles/docker-entrypoint.sh
 ```
 
 Then restart and test:
