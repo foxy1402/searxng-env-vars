@@ -69,9 +69,10 @@ Generate `SEARXNG_SECRET` online (no local tool needed):
 
 If Claw Cloud gives you HTTPS instead of HTTP, use `https://...` in `SEARXNG_BASE_URL`.
 
-## 4) Workaround: enable JSON via Command/Arguments
+## 4) Recommended Command/Arguments (1 worker, bot optimized)
 
 If your platform only exposes env vars plus startup `Command`/`Arguments`, use this startup command to create `settings.yml` at boot.
+This profile keeps 1 worker, enables JSON format, and disables engines that are commonly failing in your logs.
 
 Set startup as (for platforms with 1 Command field + 1 Arguments field):
 
@@ -84,7 +85,7 @@ Command:
 Arguments:
 
 ```text
-printf '%s\n' 'use_default_settings: true' 'search:' '  formats:' '    - html' '    - json' >/etc/searxng/settings.yml; exec /usr/local/searxng/.venv/bin/granian --interface wsgi --host 0.0.0.0 --port 8080 searx.webapp:app
+printf '%s\n' 'use_default_settings: true' 'server:' '  public_instance: false' '  limiter: false' 'search:' '  formats:' '    - json' 'engines:' '  - name: ahmia' '    disabled: true' '  - name: torch' '    disabled: true' '  - name: startpage' '    disabled: true' >/etc/searxng/settings.yml; exec /usr/local/searxng/.venv/bin/granian --interface wsgi --host 0.0.0.0 --port 8080 --workers 1 searx.webapp:app
 ```
 
 Then restart and test:
