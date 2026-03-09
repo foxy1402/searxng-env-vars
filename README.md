@@ -69,7 +69,39 @@ Generate `SEARXNG_SECRET` online (no local tool needed):
 
 If Claw Cloud gives you HTTPS instead of HTTP, use `https://...` in `SEARXNG_BASE_URL`.
 
-## 4) If you want true public-instance mode later
+## 4) Workaround: enable JSON via Command/Arguments
+
+If your platform only exposes env vars plus startup `Command`/`Arguments`, use this startup command to create `settings.yml` at boot.
+
+Command:
+
+```text
+/bin/sh
+```
+
+Arguments:
+
+```text
+-c
+cat >/etc/searxng/settings.yml <<'EOF'
+use_default_settings: true
+search:
+  formats:
+    - html
+    - json
+EOF
+exec /usr/local/searxng/dockerfiles/docker-entrypoint.sh
+```
+
+Then restart and test:
+
+```text
+http://tcp.ap-northeast-1.clawcloudrun.com:41874/search?q=bitcoin&format=json
+```
+
+Expected result: JSON response (not 403).
+
+## 5) If you want true public-instance mode later
 
 If you set `SEARXNG_PUBLIC_INSTANCE=true`, SearXNG enables bot protections that require Valkey and limiter config.
 Without Valkey, startup can fail with:
@@ -80,7 +112,7 @@ For your current "no limit, high query rate" scope, keep:
 - `SEARXNG_PUBLIC_INSTANCE=false`
 - `SEARXNG_LIMITER=false`
 
-## 5) About "only I can change settings"
+## 6) About "only I can change settings"
 
 SearXNG does not provide a global admin settings page for server config.
 Server settings are changed via environment/config + restart only.
@@ -88,7 +120,7 @@ That means only the person with access to your Claw Cloud project can change set
 
 Public users can still use the search page normally.
 
-## 6) What users can do on the website
+## 7) What users can do on the website
 
 - Use your URL as a public meta-search engine
 - Search results are fetched from upstream engines (DuckDuckGo/Brave/etc depending on SearXNG defaults and engine availability)
