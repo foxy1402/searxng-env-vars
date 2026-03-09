@@ -84,7 +84,7 @@ Command:
 Arguments:
 
 ```text
-printf '%s\n' 'use_default_settings: true' 'search:' '  formats:' '    - html' '    - json' >/etc/searxng/settings.yml; for p in /usr/local/searxng/dockerfiles/docker-entrypoint.sh /usr/local/searxng/dockerfiles/entrypoint.sh /usr/local/bin/docker-entrypoint.sh /docker-entrypoint.sh; do [ -x "$p" ] && exec "$p"; done; if command -v granian >/dev/null 2>&1; then exec granian --interface wsgi --host 0.0.0.0 --port 8080 searx.webapp:app; fi; exec python /usr/local/searxng/searx/webapp.py
+printf '%s\n' 'use_default_settings: true' 'search:' '  formats:' '    - html' '    - json' >/etc/searxng/settings.yml; exec /usr/local/searxng/.venv/bin/granian --interface wsgi --host 0.0.0.0 --port 8080 searx.webapp:app
 ```
 
 Then restart and test:
