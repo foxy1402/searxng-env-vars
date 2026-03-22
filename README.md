@@ -308,3 +308,71 @@ docker run -d --name caddy --restart unless-stopped \
 Then update:
 - `SEARXNG_BASE_URL=https://your-domain.com/`
 - Open ports `80/tcp` and `443/tcp` in both firewalld and Oracle Cloud security list
+
+---
+
+## 9) Alternative: Deploy on Northflank (Free Tier)
+
+[Northflank](https://northflank.com) offers a **free tier** that is enough to run SearXNG as a personal instance.
+
+### 9.1) Create a service
+
+1. Sign up / log in at [northflank.com](https://northflank.com)
+2. Create a new **Project**
+3. Inside the project, add a **Combined service** (build + run) or a **Deployment service** (run only)
+   - Choose **Deployment service** → pull a pre-built image
+   - Image: `ghcr.io/searxng/searxng:latest`
+4. Under **Ports**, add:
+   - Port: `8080` — Protocol: `HTTP`
+   - Enable the public port toggle so Northflank generates a public HTTPS URL for you
+5. Note the generated public URL (e.g. `https://searxng–<hash>.northflank.app`) — you will need it for `SEARXNG_BASE_URL`
+
+### 9.2) Recommended env vars
+
+Go to your service → **Environment** → add the following variables:
+
+| Name | Value |
+|------|-------|
+| `SEARXNG_BASE_URL` | `https://<your-northflank-url>/` |
+| `SEARXNG_SECRET` | `replace-with-64-hex` |
+| `SEARXNG_PUBLIC_INSTANCE` | `false` |
+| `SEARXNG_LIMITER` | `false` |
+| `SEARXNG_IMAGE_PROXY` | `true` |
+| `SEARXNG_METHOD` | `GET` |
+| `SEARXNG_DEBUG` | `false` |
+
+> Replace `<your-northflank-url>` with the HTTPS URL Northflank assigns to your service.
+> Generate `SEARXNG_SECRET` with 64 random hex characters (see Section 2 for tools).
+
+Click **Deploy** (or **Save & restart**).
+
+### 9.3) Enable JSON format via SSH
+
+SearXNG's default image does not enable the `json` format out of the box. After the container starts, use Northflank's built-in SSH terminal to patch `settings.yml` without rebuilding the image:
+
+1. In your Northflank service dashboard, click **SSH** (top-right button) to open a terminal inside the running container
+2. Paste the following block and press Enter:
+
+```sh
+cat >> /etc/searxng/settings.yml << EOF
+search:
+  formats:
+    - html
+    - json
+server:
+  public_instance: false
+EOF
+kill -HUP 1  # reload
+```
+
+3. The `kill -HUP 1` sends a SIGHUP to PID 1, which causes SearXNG to reload its config — no full restart needed.
+
+### 9.4) Verify JSON works
+
+```text
+https://<your-northflank-url>/search?q=bitcoin&format=json
+```
+
+Expected result: a JSON response (not a 403 error).
+
+> **Note:** This SSH patch only lasts until the container is restarted. For a permanent fix, set the startup command as shown in Section 4 so `settings.yml` is written at every boot.
