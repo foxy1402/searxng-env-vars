@@ -1,6 +1,7 @@
 services:
   searxng:
-    image: ghcr.io/searxng/searxng:latest
+    build: .               # build from Dockerfile in this repo
+    # image: ghcr.io/foxy1402/searxng-env-vars:latest   # use pre-built image instead of building locally
     restart: unless-stopped
     environment:
       SEARXNG_BASE_URL: ${SEARXNG_BASE_URL}
@@ -11,11 +12,9 @@ services:
       SEARXNG_METHOD: ${SEARXNG_METHOD}
       SEARXNG_DEBUG: ${SEARXNG_DEBUG}
     volumes:
-      - searxng-config:/etc/searxng
       - searxng-data:/var/cache/searxng
     ports:
       - "8080:8080"
 
 volumes:
-  searxng-config:
   searxng-data:

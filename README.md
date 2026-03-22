@@ -375,4 +375,220 @@ https://<your-northflank-url>/search?q=bitcoin&format=json
 
 Expected result: a JSON response (not a 403 error).
 
-> **Note:** This SSH patch only lasts until the container is restarted. For a permanent fix, set the startup command as shown in Section 4 so `settings.yml` is written at every boot.
+> **Note:** This SSH patch only lasts until the container is restarted. For a permanent fix, see Section 10 below — deploy from this repo using the Dockerfile.
+
+---
+
+## 10) Deploy from this repo (Dockerfile — works on any platform)
+
+This repo includes a `Dockerfile` and a `settings.yml` that bake the JSON format setting directly into the image at build time. This is the most portable approach: deploy it on Northflank, Railway, Render, Fly.io, or any platform that can build from a GitHub repo or pull a pre-built image — no SSH patching, no custom entrypoints, no startup command hacks.
+
+Every push to `main`/`master` automatically builds and publishes a fresh image to:
+
+```
+ghcr.io/foxy1402/searxng-env-vars:latest
+```
+
+You can use this image directly on any platform instead of building from source.
+
+### How it works
+
+```
+Dockerfile  →  COPY settings.yml /etc/searxng/settings.yml
+```
+
+The SearXNG entrypoint only creates `settings.yml` when the file does not already exist. By baking the file into the image, it is present from the very first boot and the entrypoint leaves it untouched.
+
+### Repo files
+
+| File | Purpose |
+|------|---------|
+| `Dockerfile` | Extends `ghcr.io/searxng/searxng:latest`, copies in `settings.yml` |
+| `settings.yml` | Enables `html` + `json` formats, disables limiter, sets `public_instance: false` |
+| `docker-compose.yml` | Local dev/self-host: builds from `Dockerfile`, reads env vars from `.env` |
+| `.env.example` | Copy to `.env` and fill in your values for local use |
+
+To change any setting (e.g. add more engines, tweak formats), edit `settings.yml` and redeploy.
+
+### 10.1) Deploy on Northflank (permanent JSON fix)
+
+**Option A — pull the pre-built image (easiest):**
+
+1. In Northflank, create a **Deployment service**
+2. Set image to: `ghcr.io/foxy1402/searxng-env-vars:latest`
+3. Add the env vars from Section 9.2
+4. Deploy — done
+
+**Option B — build from your own fork:**
+
+1. Fork this repo on GitHub
+2. In Northflank, create a **Build service** → connect your fork
+3. Northflank detects the `Dockerfile` automatically
+4. Create a **Deployment service** that uses the image produced by that build
+5. Add the env vars from Section 9.2
+6. Deploy
+
+### 10.2) Deploy on Railway
+
+**Option A — pre-built image:**
+1. In Railway, click **New Project** → **Deploy a Docker image**
+2. Image: `ghcr.io/foxy1402/searxng-env-vars:latest`
+3. Add env vars (Section 2); set `SEARXNG_BASE_URL` to the Railway-generated domain
+4. Deploy
+
+**Option B — build from repo:**
+1. Push/fork this repo to GitHub
+2. In Railway, click **New Project** → **Deploy from GitHub repo** → select the repo
+3. Railway detects the `Dockerfile` and builds automatically
+4. Add env vars, deploy
+
+### 10.3) Deploy on Render
+
+**Option A — pre-built image:**
+1. In Render, click **New** → **Web Service** → **Deploy an existing image**
+2. Image: `ghcr.io/foxy1402/searxng-env-vars:latest`
+3. Port: `8080`; add env vars (Section 2)
+4. Click **Create Web Service**
+
+**Option B — build from repo:**
+1. In Render, click **New** → **Web Service** → connect your repo
+2. Set:
+   - **Environment:** Docker
+   - **Dockerfile path:** `Dockerfile` (default)
+   - **Port:** `8080`
+3. Add env vars under **Environment** (same list as Section 2)
+4. Click **Create Web Service**
+
+### 10.4) Local build with Docker Compose
+
+```bash
+cp .env.example .env
+# edit .env — set SEARXNG_BASE_URL, SEARXNG_SECRET, etc.
+docker compose up --build
+```
+
+Test JSON:
+
+```bash
+curl "http://localhost:8080/search?q=bitcoin&format=json"
+```
+
+Expected: JSON response.
+
+---
+
+## 11) Quick-start with the pre-built image
+
+This is the fastest path to a working JSON-enabled SearXNG on any platform.
+
+### Image
+
+```
+ghcr.io/foxy1402/searxng-env-vars:latest
+```
+
+Built automatically from this repo on every push. Includes:
+- `use_default_settings: true`
+- JSON format enabled
+- `public_instance: false`
+- `limiter: false`
+
+### Env vars to set on the platform
+
+| Env var | Required | Value |
+|---|---|---|
+| `SEARXNG_BASE_URL` | **Yes** | Your platform's public URL, ending with `/` — e.g. `https://abc.northflank.app/` |
+| `SEARXNG_SECRET` | **Yes** | 64 random hex chars (see Section 2 for generators) |
+| `SEARXNG_IMAGE_PROXY` | Recommended | `true` — proxies result images through your instance |
+| `SEARXNG_METHOD` | Recommended | `GET` — required if your Telegram bot queries via GET |
+
+That's it. `PUBLIC_INSTANCE`, `LIMITER`, and `DEBUG` are already handled by the baked-in `settings.yml` and do not need to be set.
+
+### Quick deploy table
+
+| Platform | How to deploy |
+|---|---|
+| **Northflank** | Deployment service → image `ghcr.io/foxy1402/searxng-env-vars:latest` → port `8080` → add env vars |
+| **Railway** | New Project → Deploy Docker image → same image → add env vars |
+| **Render** | New Web Service → Deploy existing image → same image → port `8080` → add env vars |
+| **Fly.io** | `fly launch --image ghcr.io/foxy1402/searxng-env-vars:latest` → set secrets |
+| **Portainer** | Add container → image field → same image → env vars → port `8080:8080` |
+| **Docker CLI** | See below |
+
+```bash
+docker run -d \
+  -p 8080:8080 \
+  -e SEARXNG_BASE_URL=http://localhost:8080/ \
+  -e SEARXNG_SECRET=replace-with-64-hex \
+  -e SEARXNG_IMAGE_PROXY=true \
+  -e SEARXNG_METHOD=GET \
+  ghcr.io/foxy1402/searxng-env-vars:latest
+```
+
+### Verify JSON works
+
+```
+https://<your-url>/search?q=bitcoin&format=json
+```
+
+Expected: JSON response with a `results` array.
+
+---
+
+## 12) Connecting a Telegram bot to SearXNG
+
+### Env vars to set on your bot
+
+| Bot env var | Value | Notes |
+|---|---|---|
+| `SEARXNG_URL` | `https://<your-url>` | Base URL, **no trailing slash** (most bots expect this) |
+| `SEARXNG_BASE_URL` | `https://<your-url>/` | Used by some bots instead — **with** trailing slash |
+| `SEARXNG_FORMAT` | `json` | If your bot has a configurable format field |
+
+Most bots construct the search URL themselves as:
+
+```
+GET https://<your-url>/search?q=<encoded_query>&format=json
+```
+
+### Required SearXNG-side settings for bot use
+
+| Setting | Value | Why |
+|---|---|---|
+| `SEARXNG_METHOD=GET` | `GET` | Bots query via GET; SearXNG defaults to POST which returns 405 |
+| `SEARXNG_IMAGE_PROXY=true` | `true` | Avoids mixed-content errors when bot displays result images |
+| `SEARXNG_LIMITER=false` | `false` | Prevents rate-limit blocks on repeated bot queries (already in image) |
+| `SEARXNG_PUBLIC_INSTANCE=false` | `false` | Prevents bot-protection middleware that needs Valkey (already in image) |
+
+The pre-built image handles `LIMITER` and `PUBLIC_INSTANCE` already. You only need to set `SEARXNG_METHOD=GET` and `SEARXNG_IMAGE_PROXY=true` in the platform env vars.
+
+### Example: bot makes a search request
+
+```
+GET https://abc.northflank.app/search?q=latest+AI+news&format=json
+```
+
+Successful JSON response shape:
+
+```json
+{
+  "query": "latest AI news",
+  "results": [
+    {
+      "title": "...",
+      "url": "...",
+      "content": "...",
+      "engine": "..."
+    }
+  ]
+}
+```
+
+### Common bot connection issues
+
+| Symptom | Cause | Fix |
+|---|---|---|
+| `405 Method Not Allowed` | Bot sends GET but SearXNG expects POST | Add `SEARXNG_METHOD=GET` |
+| `403 Forbidden` | JSON format not enabled | Use this image — JSON is already on |
+| `Connection refused` | Wrong URL or port | Confirm `SEARXNG_BASE_URL` matches the actual public URL exactly |
+| Empty `results` array | Engines failing | Normal for some queries; test with `q=bitcoin` first |
