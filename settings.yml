@@ -3,14 +3,285 @@ use_default_settings: true
 server:
   public_instance: false
   limiter: false
+  secret_key: "${SEARXNG_SECRET}"
+  image_proxy: ${SEARXNG_IMAGE_PROXY}
+  method: ${SEARXNG_METHOD}
+  base_url: ${SEARXNG_BASE_URL}
+  debug: ${SEARXNG_DEBUG}
 
 search:
   formats:
     - html
     - json
+  autocomplete: "duckduckgo"
+  default_lang: "en"
+
+outgoing:
+  request_timeout: 10.0
+  max_request_timeout: 30.0
+  pool_connections: 100
+  pool_maxsize: 20
+  retry_on_timeout: true
+  max_retries: 3
 
 engines:
+  # Blacklist-only approach: disable engines that block datacenter IPs
+  # Everything else uses SearXNG's sensible defaults (which are already tuned)
+  - name: google
+    disabled: true
+  - name: google images
+    disabled: true
+  - name: google news
+    disabled: true
+  - name: google scholar
+    disabled: true
+  - name: google shopping
+    disabled: true
+  - name: google videos
+    disabled: true
+  - name: startpage
+    disabled: true
+  - name: qwant
+    disabled: true
+  - name: yandex
+    disabled: true
+  - name: yandex images
+    disabled: true
+  - name: yandex news
+    disabled: true
+  - name: yahoo
+    disabled: true
+  - name: yahoo news
+    disabled: true
+  - name: baidu
+    disabled: true
+  - name: naver
+    disabled: true
   - name: ahmia
     disabled: true
   - name: torch
+    disabled: true
+  - name: github
+    disabled: true
+  - name: gitlab
+    disabled: true
+  - name: stackoverflow
+    disabled: true
+  - name: medium
+    disabled: true
+  - name: apple app store
+    disabled: true
+  - name: apple maps
+    disabled: true
+  - name: bandcamp
+    disabled: true
+  - name: dailymotion
+    disabled: true
+  - name: vimeo
+    disabled: true
+  - name: youtube
+    disabled: true
+  - name: youtube api
+    disabled: true
+  - name: spotify
+    disabled: true
+  - name: soundcloud
+    disabled: true
+  - name: mixcloud
+    disabled: true
+  - name: lastfm
+    disabled: true
+  - name: genius
+    disabled: true
+  - name: imdb
+    disabled: true
+  - name: themoviedb
+    disabled: true
+  - name: tmdb
+    disabled: true
+  - name: tvdb
+    disabled: true
+  - name: anidb
+    disabled: true
+  - name: myanimelist
+    disabled: true
+  - name: anilist
+    disabled: true
+  - name: kitsu
+    disabled: true
+  - name: crunchyroll
+    disabled: true
+  - name: funimation
+    disabled: true
+  - name: pokemon
+    disabled: true
+  - name: minecraft
+    disabled: true
+  - name: fandom
+    disabled: true
+  - name: gamepedia
+    disabled: true
+  - name: curseforge
+    disabled: true
+  - name: nexusmods
+    disabled: true
+  - name: moddb
+    disabled: true
+  - name: indiedb
+    disabled: true
+  - name: steam
+    disabled: true
+  - name: gog
+    disabled: true
+  - name: epicgames
+    disabled: true
+  - name: origin
+    disabled: true
+  - name: uplay
+    disabled: true
+  - name: battlenet
+    disabled: true
+  - name: xbox
+    disabled: true
+  - name: playstation
+    disabled: true
+  - name: nintendo
+    disabled: true
+  - name: ebay
+    disabled: true
+  - name: amazon
+    disabled: true
+  - name: aliexpress
+    disabled: true
+  - name: alibaba
+    disabled: true
+  - name: taobao
+    disabled: true
+  - name: tmall
+    disabled: true
+  - name: jd
+    disabled: true
+  - name: walmart
+    disabled: true
+  - name: target
+    disabled: true
+  - name: bestbuy
+    disabled: true
+  - name: newegg
+    disabled: true
+  - name: etsy
+    disabled: true
+  - name: shopify
+    disabled: true
+  - name: wayfair
+    disabled: true
+  - name: ikea
+    disabled: true
+  - name: homedepot
+    disabled: true
+  - name: lowes
+    disabled: true
+  - name: costco
+    disabled: true
+  - name: samsclub
+    disabled: true
+  - name: kohls
+    disabled: true
+  - name: macys
+    disabled: true
+  - name: nordstrom
+    disabled: true
+  - name: zappos
+    disabled: true
+  - name: asos
+    disabled: true
+  - name: farfetch
+    disabled: true
+  - name: netaporter
+    disabled: true
+  - name: ssense
+    disabled: true
+  - name: mrporter
+    disabled: true
+  - name: matchesfashion
+    disabled: true
+  - name: endclothing
+    disabled: true
+  - name: grailed
+    disabled: true
+  - name: stockx
+    disabled: true
+  - name: goat
+    disabled: true
+  - name: flightclub
+    disabled: true
+  - name: stadiumgoods
+    disabled: true
+  - name: kith
+    disabled: true
+  - name: supremenewyork
+    disabled: true
+  - name: bape
+    disabled: true
+  - name: offwhite
+    disabled: true
+  - name: palace
+    disabled: true
+  - name: antisocialsocialclub
+    disabled: true
+  - name: pinterest
+    disabled: true
+  - name: instagram
+    disabled: true
+  - name: facebook
+    disabled: true
+  - name: twitter
+    disabled: true
+  - name: tiktok
+    disabled: true
+  - name: snapchat
+    disabled: true
+  - name: linkedin
+    disabled: true
+  - name: tumblr
+    disabled: true
+  - name: reddit
+    disabled: true
+  - name: quora
+    disabled: true
+  - name: discord
+    disabled: true
+  - name: slack
+    disabled: true
+  - name: telegram
+    disabled: true
+  - name: whatsapp
+    disabled: true
+  - name: signal
+    disabled: true
+  - name: wechat
+    disabled: true
+  - name: line
+    disabled: true
+  - name: viber
+    disabled: true
+  - name: kakaotalk
+    disabled: true
+  - name: vk
+    disabled: true
+  - name: odnoklassniki
+    disabled: true
+  - name: renren
+    disabled: true
+  - name: weibo
+    disabled: true
+  - name: douyin
+    disabled: true
+  - name: kuaishou
+    disabled: true
+  - name: bilibili
+    disabled: true
+  - name: zhihu
+    disabled: true
+  - name: xiaohongshu
     disabled: true
